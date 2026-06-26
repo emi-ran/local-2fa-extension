@@ -21,6 +21,20 @@ Many 2FA solutions store your sensitive secrets in the cloud or require you to p
 - 🧠 **Smart Sorting:** Automatically prioritizes and surfaces 2FA codes that match your current active tab's domain or subdomain.
 - 🎨 **Modern Interface:** Eye-catching design, buttery smooth animations, and zero clutter.
 
+## 📸 Screenshots
+
+| 🔒 Setup & Security | 📊 Main Dashboard |
+|:---:|:---:|
+| <img src="assets/setup.png" width="350" /> | <img src="assets/dashboard.png" width="350" /> |
+| Master Password protection. | Clean, fast, and sorted 2FA codes. |
+
+<br/>
+
+| ➕ Add Account | ⚙️ Settings |
+|:---:|:---:|
+| <img src="assets/add_account.png" width="350" /> | <img src="assets/settings.png" width="350" /> |
+| Add manual entries or scan QR. | Manage vault and preferences. |
+
 ## 🚀 Installation
 
 **Quick Install (Recommended)**
