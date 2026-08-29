@@ -1,4 +1,4 @@
-export interface ParsedOtpauthUri {
+﻿export interface ParsedOtpauthUri {
   type: "totp" | "hotp";
   issuer: string;
   accountName: string;
@@ -7,6 +7,68 @@ export interface ParsedOtpauthUri {
   digits: number;
   period: number;
   counter: number | null;
+}
+
+/**
+ * Builds a standard otpauth:// URI for export/QR code sharing.
+ * Fully compatible with Google Authenticator, Microsoft Authenticator, Authy, Apple Passwords, etc.
+ *
+ * Example: otpauth://totp/GitHub:user%40example.com?secret=JBSWY3DPEHPK3PXP&issuer=GitHub
+ */
+export function buildOtpauthUri(entry: {
+  type?: string;
+  issuer?: string;
+  accountName?: string;
+  secretBase32: string;
+  algorithm?: string;
+  digits?: number;
+  period?: number;
+  counter?: number | null;
+}): string {
+  const type = (entry.type || "totp").toLowerCase();
+  const issuer = (entry.issuer || "").trim();
+  const accountName = (entry.accountName || "").trim();
+
+  let label = "";
+  if (issuer && accountName) {
+    label = `${encodeURIComponent(issuer)}:${encodeURIComponent(accountName)}`;
+  } else if (issuer) {
+    label = encodeURIComponent(issuer);
+  } else if (accountName) {
+    label = encodeURIComponent(accountName);
+  } else {
+    label = "Account";
+  }
+
+  const cleanSecret = entry.secretBase32.replace(/\s+/g, "").toUpperCase();
+  const params = new URLSearchParams();
+  params.set("secret", cleanSecret);
+
+  if (issuer) {
+    params.set("issuer", issuer);
+  }
+
+  const algorithm = (entry.algorithm || "SHA1").toUpperCase();
+  if (algorithm && algorithm !== "SHA1") {
+    params.set("algorithm", algorithm);
+  }
+
+  const digits = entry.digits || 6;
+  if (digits && digits !== 6) {
+    params.set("digits", digits.toString());
+  }
+
+  if (type === "totp") {
+    const period = entry.period || 30;
+    if (period && period !== 30) {
+      params.set("period", period.toString());
+    }
+  } else if (type === "hotp") {
+    const counter = entry.counter ?? 0;
+    params.set("counter", counter.toString());
+  }
+
+  return `otpauth://${type}/${label}?${params.toString()}`;
 }
 
 /**

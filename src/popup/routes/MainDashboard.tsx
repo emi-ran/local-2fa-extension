@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+﻿import React, { useState, useEffect } from "react";
 import {
   LockIcon,
   SettingsIcon,
@@ -9,15 +9,16 @@ import {
   PlusIcon,
   ImportIcon,
   CheckIcon,
+  QrCodeIcon,
 } from "../components/Icons";
+import ShareQrModal from "../components/ShareQrModal";
 import { generateTOTP } from "../../otp/totp";
 import { generateHOTP } from "../../otp/hotp";
 import { checkLockTimeout, lock } from "../../lock/lockManager";
 import { encryptVault } from "../../crypto/vaultCrypto";
-import { saveEncryptedVault } from "../../storage/vaultRepository";
+import { saveEncryptedVault, getEncryptedVault } from "../../storage/vaultRepository";
 import type { VaultEntry, PlaintextVault } from "../../types/vault";
 import { base64urlToUint8Array } from "../../crypto/encoding";
-import { getEncryptedVault } from "../../storage/vaultRepository";
 
 interface MainDashboardProps {
   vault: PlaintextVault;
@@ -38,6 +39,7 @@ export default function MainDashboard({
   const [timeSeconds, setTimeSeconds] = useState(Math.floor(Date.now() / 1000));
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [activeDomainKeywords, setActiveDomainKeywords] = useState<string[]>([]);
+  const [selectedShareEntry, setSelectedShareEntry] = useState<VaultEntry | null>(null);
 
   // Set up second ticks and lock timeout checks
   useEffect(() => {
@@ -129,33 +131,19 @@ export default function MainDashboard({
         onUpdateVault(updatedVault);
       }
     } catch (err) {
-      console.error("Failed to delete entry:", err);
+      console.error("Failed to delete account:", err);
     }
   };
 
-  const copyTimeoutRef = React.useRef<number | null>(null);
-
-  const handleCopy = async (code: string, entryId: string) => {
-    try {
-      // Remove space before copying
-      const rawCode = code.replace(/\s+/g, "");
-      await navigator.clipboard.writeText(rawCode);
-      setCopiedId(entryId);
-      
-      if (copyTimeoutRef.current !== null) {
-        window.clearTimeout(copyTimeoutRef.current);
-      }
-      
-      copyTimeoutRef.current = window.setTimeout(() => {
-        setCopiedId(null);
-        copyTimeoutRef.current = null;
-      }, 1000);
-    } catch (err) {
-      console.error("Failed to copy:", err);
-    }
+  const handleCopy = (code: string, id: string) => {
+    navigator.clipboard.writeText(code);
+    setCopiedId(id);
+    setTimeout(() => {
+      setCopiedId((prev) => (prev === id ? null : prev));
+    }, 2000);
   };
 
-  // Filter and sort accounts
+  // Filter entries based on search input & prioritize current site match
   const filteredEntries = vault.entries
     .filter((entry) => {
       const q = search.toLowerCase();
@@ -165,29 +153,23 @@ export default function MainDashboard({
       );
     })
     .sort((a, b) => {
+      if (activeDomainKeywords.length > 0) {
+        const aMatches = activeDomainKeywords.some(
+          (k) =>
+            a.issuer.toLowerCase().includes(k) ||
+            a.accountName.toLowerCase().includes(k)
+        );
+        const bMatches = activeDomainKeywords.some(
+          (k) =>
+            b.issuer.toLowerCase().includes(k) ||
+            b.accountName.toLowerCase().includes(k)
+        );
+
+        if (aMatches && !bMatches) return -1;
+        if (!aMatches && bMatches) return 1;
+      }
       const aText = `${a.issuer} ${a.accountName}`.toLowerCase();
       const bText = `${b.issuer} ${b.accountName}`.toLowerCase();
-
-      if (search) {
-        // If searching, just sort alphabetically
-        return aText.localeCompare(bText);
-      }
-
-      let aScore = 999;
-      let bScore = 999;
-
-      if (activeDomainKeywords.length > 0) {
-        const aIndex = activeDomainKeywords.findIndex((kw) => aText.includes(kw));
-        const bIndex = activeDomainKeywords.findIndex((kw) => bText.includes(kw));
-        aScore = aIndex !== -1 ? aIndex : 999;
-        bScore = bIndex !== -1 ? bIndex : 999;
-      }
-
-      if (aScore !== bScore) {
-        return aScore - bScore; // Priority: subdomain (0) > domain (1) > rest (999)
-      }
-
-      // Alphabetical fallback
       return aText.localeCompare(bText);
     });
 
@@ -250,6 +232,7 @@ export default function MainDashboard({
                 timeSeconds={timeSeconds}
                 onCopy={(code) => handleCopy(code, entry.id)}
                 isCopied={copiedId === entry.id}
+                onShare={() => setSelectedShareEntry(entry)}
                 onEdit={() => onNavigate("add_account", { editEntry: entry })}
                 onDelete={() => handleDelete(entry.id)}
                 onIncrementHotp={() => handleIncrementHotp(entry)}
@@ -274,6 +257,14 @@ export default function MainDashboard({
           <ImportIcon size={14} /> Import QR
         </button>
       </div>
+
+      {/* Share / QR Modal */}
+      {selectedShareEntry && (
+        <ShareQrModal
+          entry={selectedShareEntry}
+          onClose={() => setSelectedShareEntry(null)}
+        />
+      )}
     </div>
   );
 }
@@ -285,6 +276,7 @@ interface AccountCardProps {
   timeSeconds: number;
   onCopy: (code: string) => void;
   isCopied: boolean;
+  onShare: () => void;
   onEdit: () => void;
   onDelete: () => void;
   onIncrementHotp: () => void;
@@ -295,6 +287,7 @@ function AccountCard({
   timeSeconds,
   onCopy,
   isCopied,
+  onShare,
   onEdit,
   onDelete,
   onIncrementHotp,
@@ -412,10 +405,13 @@ function AccountCard({
       
       <div className="card-top">
         <div className="account-info">
-          <div className="account-issuer">{entry.issuer}</div>
+          <div className="account-issuer">{entry.issuer || "Account"}</div>
           <div className="account-name">{entry.accountName}</div>
         </div>
         <div className="card-actions">
+          <button onClick={onShare} className="btn-icon" title="Share QR / Paylaş" aria-label="Share QR">
+            <QrCodeIcon size={13} />
+          </button>
           <button onClick={onEdit} className="btn-icon" title="Edit">
             <EditIcon size={13} />
           </button>
