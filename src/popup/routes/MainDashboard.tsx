@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import {
   LockIcon,
   SettingsIcon,
@@ -409,14 +409,14 @@ function AccountCard({
           <div className="account-name">{entry.accountName}</div>
         </div>
         <div className="card-actions">
-          <button onClick={onShare} className="btn-icon" title="Share QR / Paylaş" aria-label="Share QR">
-            <QrCodeIcon size={13} />
+          <button onClick={onShare} className="btn-icon" title="Paylaş (QR Kod) / Google Authenticator" aria-label="Paylaş QR Kod">
+            <QrCodeIcon size={14} />
           </button>
-          <button onClick={onEdit} className="btn-icon" title="Edit">
-            <EditIcon size={13} />
+          <button onClick={onEdit} className="btn-icon" title="Düzenle" aria-label="Düzenle">
+            <EditIcon size={14} />
           </button>
-          <button onClick={handleShowConfirm} className="btn-icon" title="Delete">
-            <TrashIcon size={13} />
+          <button onClick={handleShowConfirm} className="btn-icon" title="Sil" aria-label="Sil">
+            <TrashIcon size={14} />
           </button>
         </div>
       </div>

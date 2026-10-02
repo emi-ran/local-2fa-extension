@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import QRCode from "qrcode";
 import {
   CloseIcon,
@@ -30,10 +30,10 @@ export default function ShareQrModal({ entry, onClose }: ShareQrModalProps) {
 
     QRCode.toDataURL(otpUri, {
       errorCorrectionLevel: "M",
-      margin: 2,
-      width: 220,
+      margin: 3,
+      width: 200,
       color: {
-        dark: "#0f172a",
+        dark: "#000000",
         light: "#ffffff",
       },
     })
@@ -88,20 +88,20 @@ export default function ShareQrModal({ entry, onClose }: ShareQrModalProps) {
         <div className="modal-header">
           <div className="modal-title-group">
             <div className="modal-icon-badge">
-              <QrCodeIcon size={16} />
+              <QrCodeIcon size={18} />
             </div>
             <div>
               <h3 id="qr-modal-title" className="modal-title">
-                Share Account
+                Hesabı Paylaş / QR Kod
               </h3>
-              <p className="modal-subtitle">Scan with Google Authenticator</p>
+              <p className="modal-subtitle">Google Authenticator ile Okutun</p>
             </div>
           </div>
           <button
             onClick={onClose}
             className="btn-icon"
-            title="Close"
-            aria-label="Close"
+            title="Kapat"
+            aria-label="Kapat"
           >
             <CloseIcon size={16} />
           </button>
@@ -109,7 +109,7 @@ export default function ShareQrModal({ entry, onClose }: ShareQrModalProps) {
 
         {/* Account Info Pill */}
         <div className="modal-account-pill">
-          <span className="account-pill-issuer">{entry.issuer || "Account"}</span>
+          <span className="account-pill-issuer">{entry.issuer || "Hesap"}</span>
           <span className="account-pill-name">{entry.accountName}</span>
         </div>
 
@@ -118,7 +118,7 @@ export default function ShareQrModal({ entry, onClose }: ShareQrModalProps) {
           {loading ? (
             <div className="qr-loading-placeholder">
               <div className="spinner" />
-              <span>Generating QR Code...</span>
+              <span>QR Kod oluşturuluyor...</span>
             </div>
           ) : error ? (
             <div className="qr-error-placeholder">
@@ -136,18 +136,18 @@ export default function ShareQrModal({ entry, onClose }: ShareQrModalProps) {
         </div>
 
         <p className="qr-instruction-text">
-          Google Authenticator veya uyumlu 2FA uygulamasıyla bu kodu tarayarak hesabınızı ekleyebilirsiniz.
+          Google Authenticator uygulamasını açıp bu QR kodunu tarayarak hesabınızı ekleyebilirsiniz.
         </p>
 
         {/* Meta Info Badges */}
         <div className="qr-meta-row">
           <span className="meta-badge">{entry.type.toUpperCase()}</span>
-          <span className="meta-badge">{entry.digits} Digits</span>
+          <span className="meta-badge">{entry.digits} Hane</span>
           <span className="meta-badge">{entry.algorithm}</span>
           {entry.type === "totp" ? (
             <span className="meta-badge">{entry.period || 30}s</span>
           ) : (
-            <span className="meta-badge">Counter: {entry.counter || 0}</span>
+            <span className="meta-badge">Sayaç: {entry.counter || 0}</span>
           )}
         </div>
 
@@ -156,30 +156,30 @@ export default function ShareQrModal({ entry, onClose }: ShareQrModalProps) {
           <button
             onClick={() => handleCopy(otpUri, "uri")}
             className="btn btn-secondary modal-action-btn"
-            title="Copy standard otpauth URI"
+            title="Standart otpauth URI kopyala"
           >
             {copiedField === "uri" ? (
               <>
-                <CheckIcon size={14} style={{ color: "var(--success)" }} /> Copied URI!
+                <CheckIcon size={14} style={{ color: "var(--success)" }} /> URI Kopyalandı!
               </>
             ) : (
               <>
-                <CopyIcon size={14} /> Copy URI
+                <CopyIcon size={14} /> URI Kopyala
               </>
             )}
           </button>
           <button
             onClick={() => handleCopy(entry.secretBase32, "secret")}
             className="btn btn-secondary modal-action-btn"
-            title="Copy Base32 Secret Key"
+            title="Base32 Gizli Anahtarı kopyala"
           >
             {copiedField === "secret" ? (
               <>
-                <CheckIcon size={14} style={{ color: "var(--success)" }} /> Copied Secret!
+                <CheckIcon size={14} style={{ color: "var(--success)" }} /> Anahtar Kopyalandı!
               </>
             ) : (
               <>
-                <KeyIcon size={14} /> Copy Secret
+                <KeyIcon size={14} /> Gizli Anahtar
               </>
             )}
           </button>
@@ -191,7 +191,7 @@ export default function ShareQrModal({ entry, onClose }: ShareQrModalProps) {
           className="btn btn-primary w-100 mt-2"
           style={{ width: "100%" }}
         >
-          Done / Tamam
+          Tamam / Kapat
         </button>
       </div>
     </div>
